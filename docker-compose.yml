@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  wordpress:
+    build: 
+      context: ./build/wordpress
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_HOST: ${DB_HOST}
+      WORDPRESS_DEBUG: ${WP_DEBUG}
+      WORDPRESS_CONFIG_EXTRA: ${WP_CONFIG_EXTRA}
+      # WORDPRESS_DB_CHARSET: ${DB_CHARSET}
+      # WORDPRESS_DB_COLLOCATE: ${DB_COLLOCATE}
+      # WORDPRESS_TABLE_PREFIX: ${TABLE_PREFIX}
+      # WORDPRESS_AUTH_KEY: ${AUTH_KEY}
+      # WORDPRESS_SECURE_AUTH_KEY: ${SECURE_AUTH_KEY}
+      # WORDPRESS_LOGGED_IN_KEY: ${LOGGED_IN_KEY}
+      # WORDPRESS_NONCE_KEY: ${NONCE_KEY}
+      # WORDPRESS_AUTH_SALT: ${AUTH_SALT}
+      # WORDPRESS_SECURE_AUTH_SALT: ${SECURE_AUTH_SALT}
+      # WORDPRESS_LOGGED_IN_SALT: ${LOGGED_IN_SALT}
+      # WORDPRESS_NONCE_SALT: ${NONCE_SALT}
+
+    volumes:
+      - ./${PROJECT_NAME}:/var/www/html
+    networks:
+      - wp_network
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}  # Il nome del tuo database WordPress
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    volumes:
+      - ./mysql:/var/lib/mysql
+    networks:
+      - wp_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    networks:
+      - wp_network
+    depends_on:
+      - mysql
+
+  wpcli:
+    image: wordpress:cli
+    environment:
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_HOST: ${DB_HOST}
+      WORDPRESS_DEBUG: ${WP_DEBUG}
+      WORDPRESS_CONFIG_EXTRA: ${WP_CONFIG_EXTRA}
+
+    volumes:
+      - ./${PROJECT_NAME}:/var/www/html
+    networks:
+      - wp_network
+    depends_on:
+      - mysql
+      - wordpress
+
+networks:
+  wp_network:

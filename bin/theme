@@ -1,0 +1,65 @@
+#! /bin/bash
+
+# Create theme from _s
+if [ $# -eq 0 ]; then
+  echo "Help:"
+  echo "  - Generate a theme with name 'Sample Theme' and author 'John Doe:'"
+  echo "    bin/theme create sample-theme --theme_name=/"Sample Theme/" --author=/"John Doe/";"
+  echo "  - Generate a blank theme with slug 'sample_theme':"
+  echo "    bin/theme blank sample-theme;"
+  echo "  - List all the themes:"
+  echo "    bin/theme list;"
+  echo "  - Activate a theme:"
+  echo "    bin/theme activate theme_name;"
+  exit 1
+fi
+
+# Create a theme based on _s
+if [ "$1" = "create" ]; then
+  shift 1
+  docker-compose run --rm wpcli wp scaffold _s $@
+fi
+
+# Create a blank theme
+if [ "$1" = "blank" ]; then
+  theme_name="$2"
+  theme_author="$3"
+  theme_dir="/var/www/html/wp-content/themes/$theme_name"
+
+  docker-compose exec -u www-data wordpress /bin/bash -c "
+    # Create theme directory
+    mkdir -p \"$theme_dir\"
+
+    # Crea the files
+    touch \"$theme_dir/index.php\"
+    touch \"$theme_dir/footer.php\"
+    touch \"$theme_dir/header.php\"
+    touch \"$theme_dir/functions.php\"
+    touch \"$theme_dir/style.css\"
+
+    # Add comment to style.css
+    cat <<EOL > \"$theme_dir/style.css\"
+    /*
+    Theme Name: $theme_name
+    Author: $theme_author
+    Description: A blank theme created with Easy Docker for WordPress. https://github.com/maiobarbero/easy-docker-wordpress
+    Version: 1.0
+    */
+
+    /* Reset CSS and additional styles here */
+EOL
+"
+
+fi
+
+# List all theme installed
+if [ "$1" = "list" ]; then
+  shift 1
+  docker-compose run --rm wpcli wp theme list
+fi
+
+# Activate a theme
+if [ "$1" = "activate" ]; then
+  shift 1
+  docker-compose run --rm wpcli wp theme activate $@
+fi
