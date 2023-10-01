@@ -20,7 +20,7 @@ In this section, we will explain how to use the provided scripts and commands.
 `bin/install` Install WordPress using .env for admin username, password and email
 
 
-`bin/wp` You can pass any command that you want to use with WordPress cli. EX. `bin/cli --info`
+`bin/cli` You can pass any command that you want to use with WordPress cli. EX. `bin/cli --info`
 
 
 `bin/theme` This script simplifies theme management in your WordPress development environment. Use it without parameters to display the helper function. It provides the following functionality:

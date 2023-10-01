@@ -1,5 +1,18 @@
 #!/bin/bash
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+END='\033[0m'
+echo "${GREEN}1/ Downloading and extracting WordPress...${END}"
+bin/wordpress-download
 
-source .env
+echo "${GREEN}2/ Installing WordPress...${END}"
+bin/wordpress-install
 
-docker-compose run --rm wpcli wp core install --url="http://localhost:8080" --title="$WORDPRESS_TITLE" --admin_user="$WORDPRESS_ADMIN_USER" --admin_email="$WORDPRESS_ADMIN_EMAIL" --admin_password="$WORDPRESS_ADMIN_PWD"
+echo "${GREEN}3/ Generating wp-config.php${END}"
+bin/wordpress-config
+
+echo "${GREEN}4/ Setting up custom domanin and genrating SSL${END}"
+bin/setup-domain "${DOMAIN}"
+
+echo "${YELLOW}Docker development environment setup complete.${END}"
+echo "${YELLOW}You may now access your WordPress website at https://${DOMAIN}/${END}"

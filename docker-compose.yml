@@ -1,77 +1,58 @@
-version: '3'
+version: '3.8'
+
 
 services:
-  wordpress:
+  # 1/ Wordpress
+  wp:
     build: 
-      context: ./build/wordpress
+        context: ./build/php-8-apache
+    restart: always
     ports:
       - "8080:80"
-    environment:
-      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
-      WORDPRESS_DB_USER: ${DB_USER}
-      WORDPRESS_DB_NAME: ${DB_NAME}
-      WORDPRESS_DB_HOST: ${DB_HOST}
-      WORDPRESS_DEBUG: ${WP_DEBUG}
-      WORDPRESS_CONFIG_EXTRA: ${WP_CONFIG_EXTRA}
-      # WORDPRESS_DB_CHARSET: ${DB_CHARSET}
-      # WORDPRESS_DB_COLLOCATE: ${DB_COLLOCATE}
-      # WORDPRESS_TABLE_PREFIX: ${TABLE_PREFIX}
-      # WORDPRESS_AUTH_KEY: ${AUTH_KEY}
-      # WORDPRESS_SECURE_AUTH_KEY: ${SECURE_AUTH_KEY}
-      # WORDPRESS_LOGGED_IN_KEY: ${LOGGED_IN_KEY}
-      # WORDPRESS_NONCE_KEY: ${NONCE_KEY}
-      # WORDPRESS_AUTH_SALT: ${AUTH_SALT}
-      # WORDPRESS_SECURE_AUTH_SALT: ${SECURE_AUTH_SALT}
-      # WORDPRESS_LOGGED_IN_SALT: ${LOGGED_IN_SALT}
-      # WORDPRESS_NONCE_SALT: ${NONCE_SALT}
-
+      - "443:443"
+    env_file:
+      - .env
     volumes:
-      - ./${PROJECT_NAME}:/var/www/html
-    networks:
-      - wp_network
+      - ./www:/var/www/html/
     depends_on:
       - mysql
 
+  # 2/ Database
   mysql:
-    image: mysql:5.7
+    image: mysql:8
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}  # Il nome del tuo database WordPress
-    command: ["--default-authentication-plugin=mysql_native_password"]
+      MYSQL_DATABASE: ${DB_NAME}
     volumes:
-      - ./mysql:/var/lib/mysql
-    networks:
-      - wp_network
+      - ./db_data:/var/lib/mysql
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:
       - "8081:80"
     environment:
-      PMA_HOST: mysql
+      PMA_HOST: db
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    networks:
-      - wp_network
     depends_on:
       - mysql
 
-  wpcli:
+  # 3/ Wp cli
+  wp-cli:
     image: wordpress:cli
+    env_file:
+      - .env
     environment:
       WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
       WORDPRESS_DB_USER: ${DB_USER}
       WORDPRESS_DB_NAME: ${DB_NAME}
       WORDPRESS_DB_HOST: ${DB_HOST}
-      WORDPRESS_DEBUG: ${WP_DEBUG}
-      WORDPRESS_CONFIG_EXTRA: ${WP_CONFIG_EXTRA}
-
     volumes:
-      - ./${PROJECT_NAME}:/var/www/html
-    networks:
-      - wp_network
+      - ./www:/var/www/html
     depends_on:
+      - wp
       - mysql
-      - wordpress
 
-networks:
-  wp_network:
+volumes:
+  mysql:
+  wp:
